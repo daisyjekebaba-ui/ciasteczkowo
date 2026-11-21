@@ -147,7 +147,18 @@ document.getElementById('total').textContent=cart.reduce((s,id)=>s+products.find
 function removeItem(i){cart.splice(i,1);updateCart()}
 function openCart(){document.getElementById('cartPanel').style.display='block'}
 function closeCart(){document.getElementById('cartPanel').style.display='none'}
+
 function order(){
+  if(!cart.length){
+    alert('Twój koszyk jest pusty!');
+    return;
+  }
+
+  const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeDB8nEuVSqTTfNdqZ9AX_2xg8FASDoC3IxoHzdzAAh2FSuYg/viewform';
+
+  window.open(formUrl, '_blank');
+}
+
 if(!cart.length){alert('Twój koszyk jest pusty!');return}
 let nick=document.getElementById('player').value.trim();
 if(!nick){alert('Wpisz swój nick w grze!');return}
