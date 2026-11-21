@@ -163,7 +163,7 @@ function order(){
 
   const productList = Object.entries(counts).map(([id, quantity]) => {
     const product = products.find(p => p.id === Number(id));
-    return `${product.name} (${quantity} szt.)`;
+    return `${product.name} × ${quantity}`;
   }).join(', ');
 
   const totalQuantity = cart.length;
