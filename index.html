@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stable Market | Sklep RP</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f7f7f5;color:#252a29;font-family:Arial,sans-serif}
+header{background:#fff;border-bottom:1px solid #e8e8e5;padding:20px 7%;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.logo{font-family:Georgia,serif;font-size:25px;font-weight:bold;letter-spacing:2px}
+nav{display:flex;gap:23px;flex-wrap:wrap}
+nav a{color:#333;text-decoration:none;font-size:14px}
+nav a:hover{color:#987b5c}
+.cart{border:1px solid #ddd;padding:11px 17px;background:white;cursor:pointer}
+.hero{margin:35px auto;max-width:1200px;padding:75px 7%;background:#e9e8e1}
+.hero small{letter-spacing:3px;color:#786e60}
+.hero h1{font-family:Georgia,serif;font-size:48px;font-weight:normal;max-width:550px;margin:20px 0}
+.hero p{color:#666;line-height:1.7}
+.btn{background:#303a35;color:white;border:0;padding:14px 23px;cursor:pointer}
+main{max-width:1200px;margin:60px auto;padding:0 20px}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+h2{font-family:Georgia,serif;font-size:30px;font-weight:normal}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin:25px 0}
+.filters button{padding:10px 17px;border:1px solid #ddd;background:white;cursor:pointer}
+.filters button.active{background:#303a35;color:white}
+#search{padding:12px;border:1px solid #ddd;width:230px;max-width:100%}
+.products{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.product{background:white;border:1px solid #eee;padding-bottom:20px}
+.product-img{height:190px;background:#e9e8e1;display:flex;align-items:center;justify-content:center;font-size:65px}
+.product-info{padding:17px}
+.product h3{font-family:Georgia,serif;font-size:21px;font-weight:normal}
+.price{font-weight:bold;margin:15px 0}
+.product button{width:100%;padding:12px;background:#303a35;color:white;border:0;cursor:pointer}
+.product button:hover,.btn:hover{background:#59685e}
+footer{margin-top:80px;background:#252e29;color:white;padding:35px 7%;text-align:center}
+#cartPanel{display:none;position:fixed;right:15px;top:15px;bottom:15px;width:min(390px,calc(100% - 30px));background:white;z-index:5;padding:25px;box-shadow:0 0 0 100vmax #0007;overflow:auto}
+#cartPanel h2{margin-top:0}
+.cart-item{padding:12px 0;border-bottom:1px solid #eee}
+.cart-item button{margin-left:10px}
+#cartPanel input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd}
+@media(max-width:750px){.products{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:35px}}
+@media(max-width:480px){.products{grid-template-columns:1fr}header{padding:18px}.hero{margin:15px}.hero h1{font-size:32px}}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">STABLE MARKET</div>
+<nav>
+<a href="#">Strona główna</a>
+<a href="#products">Sklep</a>
+<a href="#about">O nas</a>
+</nav>
+<button class="cart" onclick="openCart()">Koszyk (<span id="count">0</span>)</button>
+</header>
+
+<section class="hero">
+<small>STABLE MARKET · SSO RP</small>
+<h1>Znajdź coś wyjątkowego.</h1>
+<p>Witaj w naszym sklepie! Odkryj ofertę produktów przygotowanych dla społeczności Star Stable RP.</p>
+<button class="btn" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">Odkryj kolekcję</button>
+</section>
+
+<main id="products">
+<div class="heading">
+<h2>Nasza oferta</h2>
+<input id="search" placeholder="Szukaj produktów..." oninput="render()">
+</div>
+<div class="filters" id="filters">
+<button class="active" onclick="setCategory('Wszystkie',this)">Wszystkie</button>
+<button onclick="setCategory('Konie',this)">Konie</button>
+<button onclick="setCategory('Ubrania',this)">Ubrania</button>
+<button onclick="setCategory('Akcesoria',this)">Akcesoria</button>
+</div>
+<div class="products" id="productsGrid"></div>
+</main>
+
+<section id="about" style="text-align:center;padding:30px 20px">
+<h2>O naszym sklepie</h2>
+<p>Sklep stworzony dla społeczności SSO RP.</p>
+<p>Wszystkie ceny podane są w wirtualnych centach.</p>
+</section>
+
+<footer>
+<strong>STABLE MARKET</strong>
+<p>Sklep społeczności SSO RP</p>
+<small>Nieoficjalny projekt fanowski. Nie jest powiązany z Star Stable Entertainment AB.</small>
+</footer>
+
+<div id="cartPanel">
+<button onclick="closeCart()" style="float:right">Zamknij ✕</button>
+<h2>Twój koszyk</h2>
+<div id="cartItems"></div>
+<h3>Razem: <span id="total">0</span> centów</h3>
+<hr>
+<h3>Składanie zamówienia</h3>
+<input id="player" placeholder="Twój nick w grze">
+<button class="btn" style="width:100%" onclick="order()">Przygotuj zamówienie</button>
+<p id="orderInfo" style="font-size:13px;color:#666"></p>
+</div>
+
+<script>
+const products=[
+{id:1,name:"Koń — przykład",category:"Konie",price:5000,emoji:"🐎"},
+{id:2,name:"Zestaw jeździecki",category:"Ubrania",price:1200,emoji:"👕"},
+{id:3,name:"Siodło — przykład",category:"Akcesoria",price:800,emoji:"🐴"},
+{id:4,name:"Ogłowie — przykład",category:"Akcesoria",price:600,emoji:"🎀"},
+{id:5,name:"Strój jeździecki",category:"Ubrania",price:1500,emoji:"👗"},
+{id:6,name:"Koń — kolekcja",category:"Konie",price:7000,emoji:"🐎"}
+];
+let cart=[];
+let category="Wszystkie";
+
+function render(){
+const search=document.getElementById('search').value.toLowerCase();
+const list=products.filter(p=>(category==="Wszystkie"||p.category===category)&&p.name.toLowerCase().includes(search));
+document.getElementById('productsGrid').innerHTML=list.map(p=>`
+<div class="product">
+<div class="product-img">${p.emoji}</div>
+<div class="product-info">
+<small>${p.category}</small>
+<h3>${p.name}</h3>
+<div class="price">${p.price.toLocaleString('pl-PL')} centów</div>
+<button onclick="add(${p.id})">Dodaj do koszyka</button>
+</div></div>`).join('');
+}
+function setCategory(c,el){
+category=c;
+document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
+el.classList.add('active');
+render();
+}
+function add(id){
+cart.push(id);
+updateCart();
+}
+function updateCart(){
+document.getElementById('count').textContent=cart.length;
+document.getElementById('cartItems').innerHTML=cart.map((id,i)=>{
+let p=products.find(x=>x.id===id);
+return `<div class="cart-item">${p.name} — ${p.price} centów <button onclick="removeItem(${i})">Usuń</button></div>`;
+}).join('');
+document.getElementById('total').textContent=cart.reduce((s,id)=>s+products.find(p=>p.id===id).price,0).toLocaleString('pl-PL');
+}
+function removeItem(i){cart.splice(i,1);updateCart()}
+function openCart(){document.getElementById('cartPanel').style.display='block'}
+function closeCart(){document.getElementById('cartPanel').style.display='none'}
+function order(){
+if(!cart.length){alert('Twój koszyk jest pusty!');return}
+let nick=document.getElementById('player').value.trim();
+if(!nick){alert('Wpisz swój nick w grze!');return}
+let lines=cart.map(id=>{let p=products.find(x=>x.id===id);return p.name+' — '+p.price+' centów'});
+let message='ZAMÓWIENIE STABLE MARKET\nNick: '+nick+'\n'+lines.join('\n')+'\nRazem: '+cart.reduce((s,id)=>s+products.find(p=>p.id===id).price,0)+' centów';
+if(navigator.clipboard){
+navigator.clipboard.writeText(message).then(()=>{
+document.getElementById('orderInfo').textContent='Zamówienie skopiowane! Wyślij je administratorowi sklepu.';
+}).catch(()=>{document.getElementById('orderInfo').textContent=message});
+}else{
+document.getElementById('orderInfo').textContent=message;
+}
+}
+render();
+</script>
+</body>
+</html>
