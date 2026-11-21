@@ -148,16 +148,33 @@ function removeItem(i){cart.splice(i,1);updateCart()}
 function openCart(){document.getElementById('cartPanel').style.display='block'}
 function closeCart(){document.getElementById('cartPanel').style.display='none'}
 
+
 function order(){
   if(!cart.length){
     alert('Twój koszyk jest pusty!');
     return;
   }
 
-  const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeDB8nEuVSqTTfNdqZ9AX_2xg8FASDoC3IxoHzdzAAh2FSuYg/viewform';
+  const counts = {};
+
+  cart.forEach(id => {
+    counts[id] = (counts[id] || 0) + 1;
+  });
+
+  const productList = Object.entries(counts).map(([id, quantity]) => {
+    const product = products.find(p => p.id === Number(id));
+    return `${product.name} (${quantity} szt.)`;
+  }).join(', ');
+
+  const totalQuantity = cart.length;
+
+  const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeDB8nEuVSqTTfNdqZ9AX_2xg8FASDoC3IxoHzdzAAh2FSuYg/viewform?usp=pp_url'
+    + '&entry.1673982974=' + encodeURIComponent(productList)
+    + '&entry.1428586062=' + encodeURIComponent(totalQuantity);
 
   window.open(formUrl, '_blank');
 }
+
 
 render();
 </script>
