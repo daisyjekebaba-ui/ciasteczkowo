@@ -166,11 +166,9 @@ function order(){
     return `${product.name} × ${quantity}`;
   }).join(', ');
 
-  const totalQuantity = cart.length;
 
   const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeDB8nEuVSqTTfNdqZ9AX_2xg8FASDoC3IxoHzdzAAh2FSuYg/viewform?usp=pp_url'
     + '&entry.1673982974=' + encodeURIComponent(productList)
-    + '&entry.1428586062=' + encodeURIComponent(totalQuantity);
 
   window.open(formUrl, '_blank');
 }
