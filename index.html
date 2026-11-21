@@ -159,19 +159,7 @@ function order(){
   window.open(formUrl, '_blank');
 }
 
-if(!cart.length){alert('Twój koszyk jest pusty!');return}
-let nick=document.getElementById('player').value.trim();
-if(!nick){alert('Wpisz swój nick w grze!');return}
-let lines=cart.map(id=>{let p=products.find(x=>x.id===id);return p.name+' — '+p.price+' centów'});
-let message='ZAMÓWIENIE STABLE MARKET\nNick: '+nick+'\n'+lines.join('\n')+'\nRazem: '+cart.reduce((s,id)=>s+products.find(p=>p.id===id).price,0)+' centów';
-if(navigator.clipboard){
-navigator.clipboard.writeText(message).then(()=>{
-document.getElementById('orderInfo').textContent='Zamówienie skopiowane! Wyślij je administratorowi sklepu.';
-}).catch(()=>{document.getElementById('orderInfo').textContent=message});
-}else{
-document.getElementById('orderInfo').textContent=message;
-}
-}
+
 render();
 </script>
 </body>
