@@ -71,6 +71,7 @@ button {
 <input id="price" type="number" placeholder="Cena">
 <input id="emoji" placeholder="Emoji, np. 🐎">
 <input id="image_url" placeholder="Link do zdjęcia produktu">
+<textarea id="description" placeholder="Opis produktu"></textarea>
 <button onclick="saveProduct()">Zapisz produkt</button>
 <p id="message"></p>
 </section>
@@ -148,7 +149,8 @@ const product = {
   category: document.getElementById("category").value,
   price: Number(document.getElementById("price").value),
   emoji: document.getElementById("emoji").value,
-  image_url: document.getElementById("image_url").value.trim()
+  image_url: document.getElementById("image_url").value.trim(),
+  description: document.getElementById("description").value.trim()
 };
 
   if (!product.name || !Number.isFinite(product.price) || product.price < 0) {
@@ -175,6 +177,7 @@ const product = {
   document.getElementById("price").value = "";
   document.getElementById("emoji").value = "";
   document.getElementById("image_url").value = "";
+  document.getElementById("description").value = "";
   document.getElementById("message").textContent = "Zapisano!";
   loadProducts();
 }
