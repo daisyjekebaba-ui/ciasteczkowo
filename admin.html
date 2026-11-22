@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STABLE MARKET — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body {
+  margin: 0;
+  padding: 30px;
+  background: #f8f1f4;
+  color: #49333e;
+  font-family: Arial, sans-serif;
+}
+main {
+  max-width: 850px;
+  margin: auto;
+}
+h1 { color: #a34f76; }
+section {
+  background: white;
+  padding: 22px;
+  border-radius: 16px;
+  margin: 20px 0;
+}
+input, button, select {
+  padding: 12px;
+  margin: 6px 0;
+  border: 1px solid #e5cbd8;
+  border-radius: 8px;
+  font-size: 15px;
+}
+input, select { width: 100%; box-sizing: border-box; }
+button {
+  background: #a34f76;
+  color: white;
+  border: 0;
+  cursor: pointer;
+}
+.product {
+  border-bottom: 1px solid #eee;
+  padding: 12px 0;
+}
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<main>
+<h1>STABLE MARKET</h1>
+<p>Panel administratora</p>
+
+<section id="login">
+<h2>Logowanie</h2>
+<input id="email" type="email" placeholder="E-mail">
+<input id="password" type="password" placeholder="Hasło">
+<button onclick="login()">Zaloguj się</button>
+<p id="loginMessage"></p>
+</section>
+
+<div id="panel" class="hidden">
+<section>
+<h2>Dodaj produkt</h2>
+<input id="name" placeholder="Nazwa produktu">
+<select id="category">
+<option>Konie</option>
+<option>Ubrania</option>
+<option>Akcesoria</option>
+</select>
+<input id="price" type="number" placeholder="Cena">
+<input id="emoji" placeholder="Emoji, np. 🐎">
+<button onclick="saveProduct()">Zapisz produkt</button>
+<p id="message"></p>
+</section>
+
+<section>
+<h2>Produkty w sklepie</h2>
+<div id="products"></div>
+</section>
+
+<button onclick="logout()">Wyloguj się</button>
+</div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://fnwkoyhmzlrjudpnrflm.supabase.co";
+const SUPABASE_KEY = "sb_publishable_B9R0Aw_Wu_Yh6RqfoMgs7Q_Bduvgwri";
+
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+let editingId = null;
+
+async function login() {
+  const { data, error } = await db.auth.signInWithPassword({
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value
+  });
+
+  if (error) {
+    document.getElementById("loginMessage").textContent = error.message;
+    return;
+  }
+
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("panel").classList.remove("hidden");
+  loadProducts();
+}
+
+async function loadProducts() {
+  const { data, error } = await db
+    .from("products")
+    .select("*")
+    .order("id");
+
+  if (error) {
+    document.getElementById("products").textContent = error.message;
+    return;
+  }
+
+  document.getElementById("products").innerHTML = data.map(p => `
+    <div class="product">
+      <strong>${p.emoji || ""} ${escapeHTML(p.name)}</strong>
+      <p>${escapeHTML(p.category)} — ${p.price} SSO</p>
+      <button onclick="editProduct(${p.id})">Edytuj</button>
+      <button onclick="deleteProduct(${p.id})">Usuń</button>
+    </div>
+  `).join("");
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+async function saveProduct() {
+  const product = {
+    name: document.getElementById("name").value.trim(),
+    category: document.getElementById("category").value,
+    price: Number(document.getElementById("price").value),
+    emoji: document.getElementById("emoji").value
+  };
+
+  if (!product.name || !Number.isFinite(product.price) || product.price < 0) {
+    document.getElementById("message").textContent =
+      "Podaj nazwę i prawidłową cenę.";
+    return;
+  }
+
+  let result;
+
+  if (editingId === null) {
+    result = await db.from("products").insert(product);
+  } else {
+    result = await db.from("products").update(product).eq("id", editingId);
+  }
+
+  if (result.error) {
+    document.getElementById("message").textContent = result.error.message;
+    return;
+  }
+
+  editingId = null;
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("emoji").value = "";
+  document.getElementById("message").textContent = "Zapisano!";
+  loadProducts();
+}
+
+async function editProduct(id) {
+  const { data, error } = await db.from("products").select("*").eq("id", id).single();
+  if (error) return alert(error.message);
+
+  editingId = id;
+  document.getElementById("name").value = data.name;
+  document.getElementById("category").value = data.category;
+  document.getElementById("price").value = data.price;
+  document.getElementById("emoji").value = data.emoji || "";
+  document.getElementById("message").textContent = "Edytujesz produkt. Kliknij Zapisz produkt.";
+  window.scrollTo(0, 0);
+}
+
+async function deleteProduct(id) {
+  if (!confirm("Czy na pewno usunąć ten produkt?")) return;
+
+  const { error } = await db.from("products").delete().eq("id", id);
+  if (error) return alert(error.message);
+
+  loadProducts();
+}
+
+async function logout() {
+  await db.auth.signOut();
+  document.getElementById("panel").classList.add("hidden");
+  document.getElementById("login").classList.remove("hidden");
+}
+
+db.auth.getSession().then(({ data }) => {
+  if (data.session) {
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("panel").classList.remove("hidden");
+    loadProducts();
+  }
+});
+</script>
+</body>
+</html>
