@@ -143,6 +143,7 @@ document.getElementById('productsGrid').innerHTML=list.map(p=>`
 <small>${p.category}</small>
 <h3>${p.name}</h3>
 <div class="price">${p.price.toLocaleString('pl-PL')} centów</div>
+<button onclick="showProduct(${p.id})">Zobacz szczegóły</button>
 <button onclick="add(${p.id})">Dodaj do koszyka</button>
 </div></div>`).join('');
 }
@@ -151,6 +152,37 @@ category=c;
 document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
 el.classList.add('active');
 render();
+}
+function showProduct(id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+
+  document.getElementById("modalName").textContent = product.name;
+  document.getElementById("modalDescription").textContent =
+    product.description || "Brak opisu produktu.";
+
+  document.getElementById("modalPrice").textContent =
+    product.price.toLocaleString("pl-PL") + " centów";
+
+  const image = document.getElementById("modalImage");
+
+  if (product.image_url) {
+    image.src = product.image_url;
+    image.style.display = "block";
+  } else {
+    image.style.display = "none";
+  }
+
+  document.getElementById("modalAdd").onclick = function() {
+    add(product.id);
+    closeProduct();
+  };
+
+  document.getElementById("productModal").style.display = "flex";
+}
+
+function closeProduct() {
+  document.getElementById("productModal").style.display = "none";
 }
 function add(id){
 cart.push(id);
@@ -196,5 +228,15 @@ function order(){
 
 loadProducts();
 </script>
+  <div id="productModal" style="display:none; position:fixed; inset:0; background:rgba(30,20,30,0.75); z-index:9999; justify-content:center; align-items:center; padding:20px;">
+  <div style="background:white; border-radius:20px; max-width:500px; width:100%; padding:25px; position:relative; max-height:90vh; overflow:auto;">
+    <button onclick="closeProduct()" style="position:absolute; right:15px; top:15px;">✕</button>
+    <img id="modalImage" style="width:100%; max-height:280px; object-fit:cover; border-radius:15px;">
+    <h2 id="modalName"></h2>
+    <p id="modalDescription"></p>
+    <h3 id="modalPrice"></h3>
+    <button id="modalAdd">Dodaj do koszyka</button>
+  </div>
+</div>
 </body>
 </html>
