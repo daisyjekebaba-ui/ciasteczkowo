@@ -492,22 +492,75 @@ function showProduct(id) {
 function closeProduct() {
   document.getElementById("productModal").style.display = "none";
 }
-function add(id){
-cart.push(id);
-updateCart();
-}
-function updateCart(){
-document.getElementById('count').textContent=cart.length;
-document.getElementById('cartItems').innerHTML=cart.map((id,i)=>{
-let p=products.find(x=>x.id===id);
-return `<div class="cart-item">${p.name} — ${p.price} centów <button onclick="removeItem(${i})">Usuń</button></div>`;
-}).join('');
-document.getElementById('total').textContent=cart.reduce((s,id)=>s+products.find(p=>p.id===id).price,0).toLocaleString('pl-PL');
-}
-function removeItem(i){cart.splice(i,1);updateCart()}
-function openCart(){document.getElementById('cartPanel').style.display='block'}
-function closeCart(){document.getElementById('cartPanel').style.display='none'}
 
+function add(id){
+  cart.push(id);
+  updateCart();
+}
+
+function updateCart(){
+  const counts = {};
+
+  cart.forEach(id => {
+    counts[id] = (counts[id] || 0) + 1;
+  });
+
+  document.getElementById('count').textContent = cart.length;
+
+  document.getElementById('cartItems').innerHTML =
+    Object.entries(counts).map(([id, quantity]) => {
+      const p = products.find(x => x.id === Number(id));
+
+      if (!p) return '';
+
+      return `
+        <div class="cart-item">
+          <div>
+            <strong>${p.name}</strong>
+            <p>${p.price.toLocaleString('pl-PL')} centów / szt.</p>
+          </div>
+
+          <div class="quantity">
+            <button onclick="changeQuantity(${id}, -1)">−</button>
+            <span>${quantity}</span>
+            <button onclick="changeQuantity(${id}, 1)">+</button>
+          </div>
+
+          <strong>${(p.price * quantity).toLocaleString('pl-PL')} centów</strong>
+        </div>
+      `;
+    }).join('');
+
+  document.getElementById('total').textContent =
+    cart.reduce((sum, id) => {
+      const p = products.find(x => x.id === id);
+      return sum + (p ? p.price : 0);
+    }, 0).toLocaleString('pl-PL');
+}
+
+function changeQuantity(id, amount){
+  if (amount > 0) {
+    cart.push(Number(id));
+  } else {
+    const index = cart.indexOf(Number(id));
+    if (index !== -1) cart.splice(index, 1);
+  }
+
+  updateCart();
+}
+
+function removeItem(i){
+  cart.splice(i, 1);
+  updateCart();
+}
+
+function openCart(){
+  document.getElementById('cartPanel').style.display='block';
+}
+
+function closeCart(){
+  document.getElementById('cartPanel').style.display='none';
+}
 
 function order(){
   if(!cart.length){
