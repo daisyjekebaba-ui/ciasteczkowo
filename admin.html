@@ -191,6 +191,8 @@ async function editProduct(id) {
   document.getElementById("category").value = data.category;
   document.getElementById("price").value = data.price;
   document.getElementById("emoji").value = data.emoji || "";
+  document.getElementById("image_url").value = data.image_url || "";
+document.getElementById("description").value = data.description || "";
   document.getElementById("message").textContent = "Edytujesz produkt. Kliknij Zapisz produkt.";
   window.scrollTo(0, 0);
 }
